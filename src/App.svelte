@@ -1,10 +1,10 @@
 <script lang="ts">
 	import AudioPlayer from './lib/AudioPlayer.svelte';
-	// import {tracks} from './assets/tracks' 
+	import { tracks } from './assets/tracks';
 
 	import { onMount } from 'svelte';
 
-	let tracks = [];
+	// let tracks = [];
 	let files = [];
 
 	function handleFileUpload() {
@@ -15,11 +15,13 @@
 				const audioBlob = new Blob([reader.result], { type: file.type });
 				const audioUrl = URL.createObjectURL(audioBlob);
 
-				tracks = [...tracks, {
-					src: audioUrl,
-					title: file.name,
-					artist: 'Local File'
-				}];
+				tracks.concat([
+					{
+						src: audioUrl,
+						title: file.name,
+						artist: 'Local File'
+					}
+				]);
 
 				saveTracksToStorage();
 			};
@@ -28,21 +30,20 @@
 		}
 
 		files = []; // Reset the files array
-}
+	}
 
-function saveTracksToStorage() {
-  localStorage.setItem('tracks', JSON.stringify(tracks));
-}
+	function saveTracksToStorage() {
+		localStorage.setItem('tracks', JSON.stringify(tracks));
+	}
 
-function loadTracksFromStorage() {
-  const storedTracks = JSON.parse(localStorage.getItem('tracks'));
-  if (storedTracks) {
-    tracks = storedTracks;
-  }
-}
+	function loadTracksFromStorage() {
+		const storedTracks = JSON.parse(localStorage.getItem('tracks'));
+		if (storedTracks) {
+			tracks = storedTracks;
+		}
+	}
 
-onMount(loadTracksFromStorage);
-
+	onMount(loadTracksFromStorage);
 </script>
 
 <main>
@@ -50,7 +51,5 @@ onMount(loadTracksFromStorage);
 		<AudioPlayer {...track} />
 	{/each}
 
-	<input type="file" multiple accept="audio/*" on:change={handleFileUpload} bind:files>
+	<input type="file" multiple accept="audio/*" on:change={handleFileUpload} bind:files />
 </main>
-
-

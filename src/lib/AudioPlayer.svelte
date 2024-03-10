@@ -141,8 +141,4 @@ function onSliderMove(e) {
 		height: 100%;
 		background: #16a34a;
 	}
-
-	.progress:after {
-		content: '🟢';
-	}
 </style>
