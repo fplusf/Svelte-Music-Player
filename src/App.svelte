@@ -1,55 +1,96 @@
 <script lang="ts">
+	import { db } from './db/db';
 	import AudioPlayer from './lib/AudioPlayer.svelte';
-	import { tracks } from './assets/tracks';
+	import FileUploader from './lib/FileUploader.svelte';
+	import { loadTracksToMemory, tracks } from './stores/tracks';
+	import { onDestroy, onMount } from 'svelte';
 
-	import { onMount } from 'svelte';
+	onMount(async () => {
+		await loadTracksToMemory();
+	});
 
-	// let tracks = [];
-	let files = [];
+	onDestroy(revokeObjectURLs);
 
-	function handleFileUpload() {
-		for (const file of files) {
-			const reader = new FileReader();
-
-			reader.onload = () => {
-				const audioBlob = new Blob([reader.result], { type: file.type });
-				const audioUrl = URL.createObjectURL(audioBlob);
-
-				tracks.concat([
-					{
-						src: audioUrl,
-						title: file.name,
-						artist: 'Local File'
-					}
-				]);
-
-				saveTracksToStorage();
-			};
-
-			reader.readAsArrayBuffer(file);
-		}
-
-		files = []; // Reset the files array
+	function revokeObjectURLs() {
+		console.log('revokeObjectURLs');
+		$tracks.forEach((track) => {
+			if (track.src) URL.revokeObjectURL(track.src);
+		});
 	}
 
-	function saveTracksToStorage() {
-		localStorage.setItem('tracks', JSON.stringify(tracks));
+	function deleteTrack(e: CustomEvent<{ id: string }>) {
+		console.log(e.detail.id);
+		db.audioTrackCollection.tracks
+			.findOne(e.detail.id)
+			.exec()
+			.then((track) => {
+				console.log('track to delete', track);
+				if (track) {
+					track.remove();
+
+					// Remove the track from the store
+					tracks.update((tracks) => {
+						return tracks.filter((t) => t.id !== e.detail.id);
+					});
+				}
+			});
 	}
 
-	function loadTracksFromStorage() {
-		const storedTracks = JSON.parse(localStorage.getItem('tracks'));
-		if (storedTracks) {
-			tracks = storedTracks;
-		}
-	}
-
-	onMount(loadTracksFromStorage);
+	console.log($tracks);
 </script>
 
+<header class="header">
+	<h1 class="title">Potify</h1>
+	<div class="info">
+		<small>Upload and listen your tracks 🎵</small>
+		<small>Do delete use double click or swipe left on mobile 🟥</small>
+	</div>
+</header>
 <main>
-	{#each tracks as track}
-		<AudioPlayer {...track} />
+	{#each $tracks as track}
+		<AudioPlayer
+			id={track.id}
+			src={track.src}
+			artist={track.artist}
+			title={track.title}
+			on:delete={deleteTrack}
+		/>
 	{/each}
 
-	<input type="file" multiple accept="audio/*" on:change={handleFileUpload} bind:files />
+	<FileUploader />
 </main>
+
+<style>
+	.header {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		background-color: rgb(48, 48, 48);
+		padding: 1em;
+		width: 100%;
+	}
+	.title {
+		text-align: center;
+		font-size: 2em;
+		margin: 0;
+		color: cadetblue;
+	}
+	.info {
+		background-color: rgb(48, 48, 48);
+		padding: 10px;
+		border-radius: 10px;
+		display: flex;
+		flex-direction: column;
+		text-align: center;
+		margin-bottom: 1em;
+	}
+	main {
+		padding-top: 130px;
+		height: 80vh;
+		overflow-y: auto;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+</style>

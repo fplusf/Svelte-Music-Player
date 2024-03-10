@@ -13,12 +13,19 @@
 	"devDependencies": {
 		"@sveltejs/vite-plugin-svelte": "^3.0.2",
 		"@tsconfig/svelte": "^5.0.2",
+		"@types/uuid": "^9.0.8",
+		"prettier": "^3.1.1",
+		"prettier-plugin-svelte": "^3.1.2",
 		"svelte": "^4.2.12",
 		"svelte-check": "^3.6.4",
 		"tslib": "^2.6.2",
 		"typescript": "^5.2.2",
-		"vite": "^5.1.4",
-		"prettier": "^3.1.1",
-		"prettier-plugin-svelte": "^3.1.2"
+		"vite": "^5.1.4"
+	},
+	"dependencies": {
+		"rxdb": "^15.11.0",
+		"rxjs": "^7.8.1",
+		"svelte-gestures": "^4.0.0",
+		"uuid": "^9.0.1"
 	}
 }

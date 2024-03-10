@@ -1,74 +1,81 @@
 <script lang="ts">
- export let src;
- export let title = 'ttitle';
- export let artist;
+	import { createEventDispatcher } from 'svelte';
+	import { swipe } from 'svelte-gestures';
 
-let time = 0;
-let duration = 0;
-let paused = true;
+	export let id: string | undefined;
+	export let src: string = '';
+	export let title: string;
+	export let artist: string;
 
+	let time = 0;
+	let duration = 0;
+	let paused = true;
 
-function format(time) {
-	if(isNaN(time)) return '...';
+	const dispatch = createEventDispatcher();
 
-	const minutes = Math.floor(time / 60);
-	const seconds = Math.floor(time % 60);
+	function format(time: number) {
+		if (isNaN(time)) return '...';
 
-	return `${minutes}:${seconds < 10 ? `0${seconds}` : seconds}`;
-}
+		const minutes = Math.floor(time / 60);
+		const seconds = Math.floor(time % 60);
 
-function onSliderMove(e) {
-  const div = e.currentTarget;
+		return `${minutes}:${seconds < 10 ? `0${seconds}` : seconds}`;
+	}
 
-  function seek(e) {
-    const { left, width } = div.getBoundingClientRect();
+	function onSliderMove(e: any) {
+		const div = e.currentTarget;
 
-    let pointer = (e.clientX - left) / width;
-    if(pointer < 0) pointer = 0;
-    if(pointer > 1) pointer = 1;
+		function seek(e: any) {
+			const { left, width } = div.getBoundingClientRect();
 
-    time = pointer * duration;
-  }
+			let pointer = (e.clientX - left) / width;
+			if (pointer < 0) pointer = 0;
+			if (pointer > 1) pointer = 1;
 
-  seek(e);
+			time = pointer * duration;
+		}
 
-  window.addEventListener('pointermove', seek);
-  window.addEventListener('pointerup', () => {
-    window.removeEventListener('pointermove', seek);
-  }, { once: true })
-}
+		seek(e);
+
+		window.addEventListener('pointermove', seek);
+		window.addEventListener(
+			'pointerup',
+			() => {
+				window.removeEventListener('pointermove', seek);
+			},
+			{ once: true }
+		);
+	}
 </script>
 
-<div class="player" class:paused>
-  <audio
-    {src}
-    bind:currentTime={time}
-    bind:duration
-    bind:paused
-  />
+<div
+	role="button"
+	tabindex="0"
+	use:swipe={{ timeframe: 300, minSwipeDistance: 100 }}
+	on:swipe={() => dispatch('delete', { id })}
+	on:dblclick={() => dispatch('delete', { id })}
+	class="player"
+	class:paused
+>
+	<audio {src} bind:currentTime={time} bind:duration bind:paused />
 
-  <button 
-    class="play"
-    aria-label={paused ? 'play' : 'pause'}
-    on:click={() => paused = !paused} 
-    />
+	<button class="play" aria-label={paused ? 'play' : 'pause'} on:click={() => (paused = !paused)} />
 
-  <div class="info">
-    <div class="description">
-      <strong>{title}</strong>
-      <span>{artist}</span>
-    </div>
+	<div class="info">
+		<div class="description">
+			<strong>{title}</strong>
+			<span>{artist}</span>
+		</div>
 
-    <div class="time">
-      <span>{format(time)}</span>
-      <div class="slider" on:pointerdown={onSliderMove}>
-        <div class="progress" style="--progress: {time / duration}%"/>
-      </div>
-      <span>{duration ? format(duration) : '--:--'}</span>
-    </div>
-  </div>
+		<div class="time">
+			<span>{format(time)}</span>
+			<div class="slider" on:pointerdown={onSliderMove}>
+				<div class="progress" style="--progress: {time / duration}%" />
+			</div>
+			<span>{duration ? format(duration) : '--:--'}</span>
+		</div>
+	</div>
 </div>
-
 
 <style>
 	.player {
@@ -87,10 +94,10 @@ function onSliderMove(e) {
 
 	.player:not(.paused) {
 		color: white;
-		filter: drop-shadow(0.5em 0.5em 1em rgba(0,0,0,0.1));
+		filter: drop-shadow(0.5em 0.5em 1em rgba(0, 0, 0, 0.1));
 		background: #064e3b;
 	}
-	
+
 	button {
 		width: 100%;
 		aspect-ratio: 1;
@@ -98,12 +105,12 @@ function onSliderMove(e) {
 		background-position: 50% 50%;
 		border-radius: 50%;
 	}
-	
-	[aria-label="pause"] {
+
+	[aria-label='pause'] {
 		background-image: url(../assets/pause.svg);
 	}
 
-	[aria-label="play"] {
+	[aria-label='play'] {
 		background-image: url(../assets/play.svg);
 	}
 
