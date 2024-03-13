@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { swipe } from 'svelte-gestures';
+	import { slide } from 'svelte/transition';
 
-	export let id: string | undefined;
+	export let id: number | undefined;
 	export let src: string = '';
 	export let title: string;
 	export let artist: string;
@@ -10,14 +11,37 @@
 	let time = 0;
 	let duration = 0;
 	let paused = true;
+	let clickCount = 0;
 
 	const dispatch = createEventDispatcher();
+
+	// TODO: Update the current track in the database on play / pause, so it can be played from the last played time
+	// async function updateCurrentTrack() {
+	// 	let nowPlayingTrack = $tracks.find((track) => track.id === id);
+
+	// 	if (!nowPlayingTrack) return;
+
+	// 	await db.tracks.update(nowPlayingTrack.id, {
+	// 		lastPlayedTime: time,
+	// 		isPlaying: !paused
+	// 	});
+	// }
+
+	function onPlayPause() {
+		paused = !paused;
+	}
 
 	function format(time: number) {
 		if (isNaN(time)) return '...';
 
-		const minutes = Math.floor(time / 60);
+		let minutes = Math.floor(time / 60);
 		const seconds = Math.floor(time % 60);
+		const hours = Math.floor(time / 3600);
+
+		if (hours > 0) {
+			minutes = minutes - hours * 60;
+			return `${hours}:${minutes}:${seconds < 10 ? `0${seconds}` : seconds}`;
+		}
 
 		return `${minutes}:${seconds < 10 ? `0${seconds}` : seconds}`;
 	}
@@ -48,18 +72,36 @@
 	}
 </script>
 
+<!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
 	role="button"
 	tabindex="0"
-	use:swipe={{ timeframe: 300, minSwipeDistance: 100 }}
+	draggable="true"
+	transition:slide
+	use:swipe={{ timeframe: 300, minSwipeDistance: 80 }}
 	on:swipe={() => dispatch('delete', { id })}
-	on:dblclick={() => dispatch('delete', { id })}
+	on:click={() => {
+		clickCount++;
+		if (clickCount === 3) {
+			dispatch('delete', { id });
+			clickCount = 0;
+		}
+		setTimeout(() => {
+			clickCount = 0;
+		}, 400);
+	}}
 	class="player"
 	class:paused
 >
-	<audio {src} bind:currentTime={time} bind:duration bind:paused />
+	<audio
+		{src}
+		bind:currentTime={time}
+		bind:duration
+		bind:paused
+		on:ended={() => (paused = !paused)}
+	/>
 
-	<button class="play" aria-label={paused ? 'play' : 'pause'} on:click={() => (paused = !paused)} />
+	<button class="play" aria-label={paused ? 'play' : 'pause'} on:click={onPlayPause} />
 
 	<div class="info">
 		<div class="description">
@@ -84,18 +126,22 @@
 		align-items: center;
 		gap: 1em;
 		padding: 0.5em 1em 0.5em 0.5em;
+		margin: 0.5em 0;
 		border-radius: 2em;
 		background: #333333;
 		transition: filter 0.2s;
 		color: white;
 		user-select: none;
-		margin: 10px 0;
+		width: -webkit-fill-available;
+		min-width: 100%;
+		widows: fit-content;
+		max-width: 500px;
 	}
 
 	.player:not(.paused) {
 		color: white;
 		filter: drop-shadow(0.5em 0.5em 1em rgba(0, 0, 0, 0.1));
-		background: #064e3b;
+		background: var(--color-primary);
 	}
 
 	button {
@@ -123,6 +169,7 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		line-height: 1.2;
+		text-align: left;
 	}
 
 	.time {
@@ -146,6 +193,6 @@
 	.progress {
 		width: calc(100 * var(--progress));
 		height: 100%;
-		background: #16a34a;
+		background: var(--color-primary-light);
 	}
 </style>

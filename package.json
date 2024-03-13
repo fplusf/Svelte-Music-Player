@@ -14,6 +14,7 @@
 		"@sveltejs/vite-plugin-svelte": "^3.0.2",
 		"@tsconfig/svelte": "^5.0.2",
 		"@types/uuid": "^9.0.8",
+		"@types/wicg-file-system-access": "^2023.10.5",
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.1.2",
 		"svelte": "^4.2.12",
@@ -23,8 +24,7 @@
 		"vite": "^5.1.4"
 	},
 	"dependencies": {
-		"rxdb": "^15.11.0",
-		"rxjs": "^7.8.1",
+		"dexie": "^4.0.1-beta.14",
 		"svelte-gestures": "^4.0.0",
 		"uuid": "^9.0.1"
 	}

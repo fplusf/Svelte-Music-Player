@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { onDestroy, onMount } from 'svelte';
 	import { db } from './db/db';
 	import AudioPlayer from './lib/AudioPlayer.svelte';
-	import FileUploader from './lib/FileUploader.svelte';
-	import { loadTracksToMemory, tracks } from './stores/tracks';
-	import { onDestroy, onMount } from 'svelte';
+	import FileUploader from './lib/FileReader.svelte';
+	import { currentTrack, loadTracksToMemory, tracks } from './stores/tracks';
+
+	let modal: HTMLDialogElement;
 
 	onMount(async () => {
 		await loadTracksToMemory();
@@ -12,40 +14,54 @@
 	onDestroy(revokeObjectURLs);
 
 	function revokeObjectURLs() {
-		console.log('revokeObjectURLs');
 		$tracks.forEach((track) => {
 			if (track.src) URL.revokeObjectURL(track.src);
 		});
 	}
 
-	function deleteTrack(e: CustomEvent<{ id: string }>) {
-		console.log(e.detail.id);
-		db.audioTrackCollection.tracks
-			.findOne(e.detail.id)
-			.exec()
-			.then((track) => {
-				console.log('track to delete', track);
-				if (track) {
-					track.remove();
+	function deleteTrack(e: CustomEvent<{ id: number }>) {
+		if (!e.detail.id) return;
 
-					// Remove the track from the store
-					tracks.update((tracks) => {
-						return tracks.filter((t) => t.id !== e.detail.id);
-					});
-				}
+		if (!window.confirm('Are you sure you want to delete this track?')) return;
+
+		db.tracks
+			.delete(e.detail.id)
+			.then(() => {
+				tracks.update((tracks) => {
+					return tracks.filter((track) => track.id !== e.detail.id);
+				});
+			})
+			.catch((err) => {
+				console.error('Error deleting track:', err);
 			});
 	}
-
-	console.log($tracks);
 </script>
 
-<header class="header">
-	<h1 class="title">Potify</h1>
-	<div class="info">
-		<small>Upload and listen your tracks 🎵</small>
-		<small>Do delete use double click or swipe left on mobile 🟥</small>
+<dialog bind:this={modal} id="info-modal">
+	<div class="info-dialog">
+		<p>Upload and listen your tracks 🎵</p>
+		<p>Do delete use triple click or swipe left on mobile 🟥</p>
+		<small class="forma-info">Supported format are: [.mp3', '.wav', '.ogg']</small>
 	</div>
-</header>
+
+	<button
+		id="closeModal"
+		on:click={() => {
+			modal.close();
+		}}>Close</button
+	>
+</dialog>
+
+<button
+	id="info-modal"
+	on:click={() => {
+		modal.translate = true;
+		modal.showModal();
+	}}
+>
+	ℹ️
+</button>
+
 <main>
 	{#each $tracks as track}
 		<AudioPlayer
@@ -61,36 +77,26 @@
 </main>
 
 <style>
-	.header {
-		position: absolute;
-		top: 0;
-		left: 0;
-		right: 0;
-		background-color: rgb(48, 48, 48);
-		padding: 1em;
-		width: 100%;
-	}
-	.title {
-		text-align: center;
-		font-size: 2em;
-		margin: 0;
-		color: cadetblue;
-	}
-	.info {
-		background-color: rgb(48, 48, 48);
-		padding: 10px;
+	#info-modal {
+		background-color: rgba(0, 0, 0, 0.512);
+		border: none;
 		border-radius: 10px;
-		display: flex;
-		flex-direction: column;
-		text-align: center;
 		margin-bottom: 1em;
 	}
+	.info-dialog {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 5px;
+		padding-bottom: 20px;
+	}
+
 	main {
-		padding-top: 130px;
 		height: 80vh;
 		overflow-y: auto;
 		display: flex;
-		flex-direction: column;
+		flex-direction: column-reverse;
 		align-items: center;
 	}
 </style>

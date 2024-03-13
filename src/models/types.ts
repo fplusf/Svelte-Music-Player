@@ -1,7 +1,9 @@
 export interface Track {
-	id?: string;
+	id?: number;
 	src?: string;
-	attachments: string | Blob;
+	file: File;
 	title: string;
 	artist: string;
+	lastPlayedTime?: number;
+	isPlaying?: boolean;
 }
