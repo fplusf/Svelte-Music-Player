@@ -1,0 +1,26 @@
+{
+	"name": "Svelte Music Player",
+	"version": "1.0.0",
+	"description": "A music player built with Svelte",
+	"author": "FF",
+	"homepage_url": "https://yourwebsite.com",
+	"icons": [
+		{
+			"src": "icon.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		}
+	],
+	"permissions": ["storage", "audio"],
+	"background": {
+		"scripts": ["background.js"],
+		"persistent": false
+	},
+	"content_scripts": [
+		{
+			"matches": ["<all_urls>"],
+			"js": ["content.js"]
+		}
+	],
+	"manifest_version": 2
+}
