@@ -78,7 +78,7 @@
 
 <style>
 	#info-modal {
-		background-color: rgba(0, 0, 0, 0.512);
+		background-color: rgba(0, 0, 0, 0.817);
 		border: none;
 		border-radius: 10px;
 		margin-bottom: 1em;
