@@ -98,5 +98,6 @@
 		display: flex;
 		flex-direction: column-reverse;
 		align-items: center;
+		width: 100%;
 	}
 </style>

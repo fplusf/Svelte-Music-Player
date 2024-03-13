@@ -57,6 +57,7 @@ h1 {
 	place-items: center;
 	min-width: 0;
 	height: 100%;
+	width: 100%;
 }
 
 button {
