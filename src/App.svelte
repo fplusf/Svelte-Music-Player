@@ -62,6 +62,12 @@
 	ℹ️
 </button>
 
+{#if $tracks.length === 0}
+	<p class="list">No tracks found. Upload some tracks to get started...</p>
+{:else}
+	<p class="list">Your tracks 🎧</p>
+{/if}
+
 <main>
 	{#each $tracks as track}
 		<AudioPlayer
@@ -81,7 +87,6 @@
 		background-color: rgba(0, 0, 0, 0.817);
 		border: none;
 		border-radius: 10px;
-		margin-bottom: 1em;
 	}
 	.info-dialog {
 		display: flex;
@@ -90,6 +95,10 @@
 		justify-content: center;
 		gap: 5px;
 		padding-bottom: 20px;
+	}
+
+	.list {
+		margin-bottom: 1em;
 	}
 
 	main {
